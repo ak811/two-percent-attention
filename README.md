@@ -1,6 +1,6 @@
 # Two Percent Attention: Benchmarking Sparse Attention in Vision Transformers
 
-This repository implements **sparse multi-head self-attention (MHSA)** modules for Vision Transformers (ViTs), emphasizing **structured, head-diverse sparsity** that preserves critical long-range pathways while substantially reducing compute and memory. The library provides **drop-in attention backends** (Random, Local/Structured, Top-K, Pruning), established baselines (BigBird, Longformer, Linformer, Efficient Attention), and our proposed **Fibottention** family. Components are configured via YAML and integrate with standard pretraining and finetuning pipelines.
+Two Percent Attention benchmarks 10 attention mechanisms for Vision Transformers (ViTs) at approximately 2% of dense attention FLOPs, examining the trade-off between classification accuracy and attention compute under a matched budget. The suite brings together random, local, Top-K, and pruning-based approaches; established baselines including BigBird, Longformer, Linformer, and Efficient Attention; and our proposed Fibottention family, which uses Fibonacci/Wythoff-inspired patterns to create complementary local and long-range connections across heads. A shared interface, YAML-based configuration, and integration with pretraining and fine-tuning pipelines make it straightforward to swap mechanisms, reproduce comparisons, and evaluate new attention patterns.
 
 ---
 
