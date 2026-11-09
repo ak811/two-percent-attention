@@ -131,13 +131,33 @@ In practice we target **~2–5%** of dense edges while maintaining strong accura
 
 **Protocol:** ViT-B across methods with **matched attention FLOPs** (~0.014 GFLOPs) vs dense (~0.72 GFLOPs). “Pruning ratio” denotes the percentage of dense attention edges removed.
 
+## Hardware efficiency (attention layer)
+
+A masked implementation computes all N² scores and then zeroes most of them, so it saves no time. The **true-sparse** backend (`configs/attention/vit_fibottention_true_sparse.yaml`) gathers only each head's Fibottention keys and computes O(N·M) scores, where M is the number of keys each query keeps.
+
+At **4,096 tokens**, true-sparse Fibottention against naive dense attention:
+
+| Metric | Result |
+|---|:--:|
+| Latency (batch size 1) | **2.45× lower** |
+| Throughput (batch size 32) | **2.49× higher** |
+| Peak GPU memory (batch size 32) | **70% lower** |
+
+True-sparse Fibottention overtakes naive dense attention from about **1,024 tokens** onward, and the gap widens as sequences grow.
+
+**Protocol:** one ViT-B attention layer (dim 768, 12 heads), forward pass only, under `torch.no_grad()` with CUDA autocast (fp16). Latency is the mean of 100 CUDA-event-timed runs after 15 warmup runs at batch size 1. Throughput (sequences/s) and peak memory (`torch.cuda.max_memory_allocated`) come from 50 runs after 5 warmup runs at batch size 32. Sequence lengths are 196, 512, 1,024, 2,048, and 4,096 tokens. The script also reports PyTorch SDPA (FlashAttention) dense attention and the masked ("simulated") Fibottention for reference. The 2.45×/2.49×/70% figures compare against naive dense attention, not SDPA. Absolute numbers depend on the GPU, so rerun to get yours:
+
+```bash
+python benchmarks/benchmark_latency.py
+```
+
 ---
 
 ## Installation
 
 ```bash
-git clone https://github.com/<your-org>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/ak811/two-percent-attention.git
+cd two-percent-attention
 conda create -n sparsevit python=3.10 -y
 conda activate sparsevit
 pip install -r requirements.txt
